@@ -13,6 +13,7 @@ load_dotenv()
 embeddings = OpenAIEmbeddings()
 db = Chroma(embedding_function=embeddings, persist_directory="emb")
 retriever = DeDuplicationRetriever(embeddings=embeddings, chroma=db)
+# retriever = db.as_retriever()
 chat = ChatOpenAI()
 
 chain = RetrievalQA.from_chain_type(llm=chat, retriever=retriever, chain_type="stuff")

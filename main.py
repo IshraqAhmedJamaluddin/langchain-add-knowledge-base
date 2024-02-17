@@ -1,15 +1,18 @@
-from langchain_community.document_loaders import TextLoader
-from langchain.text_splitter import CharacterTextSplitter
+from langchain_openai import ChatOpenAI
+from langchain.chains import RetrievalQA
+from langchain_openai import OpenAIEmbeddings
+from langchain_community.vectorstores.chroma import Chroma
+from dotenv import load_dotenv
 
-text_splitter = CharacterTextSplitter(
-    separator="\n",
-    chunk_size=200,  # tries to make chunks of size <= chunk_size or the minimum if all are > chunk_size
-    chunk_overlap=100,
-)
+load_dotenv()
 
-loader = TextLoader("facts.txt")
-docs = loader.load_and_split(text_splitter=text_splitter)
+embeddings = OpenAIEmbeddings()
+db = Chroma(embedding_function=embeddings, persist_directory="emb")
+retriever = db.as_retriever()
+chat = ChatOpenAI()
 
-for doc in docs:
-    print(doc.page_content)
-    print("\n")
+chain = RetrievalQA.from_chain_type(llm=chat, retriever=retriever, chain_type="stuff")
+
+result = chain.invoke("What is an interesting fact about the English language?")
+
+print(result)
